@@ -41,4 +41,21 @@ defmodule AutomataTest do
 
   assert Enum.sort(result) == [0,1,2]
 end
+test "e_determinize works" do
+  nfa = %Automata{
+    states: [0,1,2],
+    alphabet: [:a],
+    transitions: %{
+      {0, :epsilon} => [1],
+      {1, :a} => [2]
+    },
+    start: 0,
+    accept: [2]
+  }
+
+  dfa = Automata.e_determinize(nfa)
+
+  assert dfa.start == [0,1]
+  assert Enum.any?(dfa.states, fn s -> 2 in s end)
+end
 end

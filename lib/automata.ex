@@ -81,4 +81,51 @@ defp closure([current | rest], automaton, visited) do
 
   closure(rest ++ next, automaton, new_visited)
 end
+
+def e_determinize(nfa) do
+  start = e_closure(nfa, [nfa.start])
+  process_e([start], [], %{}, nfa)
+end
+
+defp process_e([], states, transitions, nfa) do
+  %Automata{
+    states: states,
+    alphabet: nfa.alphabet,
+    transitions: transitions,
+    start: e_closure(nfa, [nfa.start]),
+    accept:
+      Enum.filter(states, fn state_set ->
+        Enum.any?(state_set, fn s -> s in nfa.accept end)
+      end)
+  }
+end
+
+defp process_e([current | rest], states, transitions, nfa) do
+  states =
+    if current in states do
+      states
+    else
+      [current | states]
+    end
+
+  {new_transitions, new_queue} =
+    Enum.reduce(nfa.alphabet, {transitions, rest}, fn symbol, {t_acc, q_acc} ->
+      move_set = move(nfa, current, symbol)
+      closure = e_closure(nfa, move_set)
+
+      t_acc = Map.put(t_acc, {current, symbol}, closure)
+
+      q_acc =
+        cond do
+          closure == [] -> q_acc
+          closure in states -> q_acc
+          closure in q_acc -> q_acc
+          true -> [closure | q_acc]
+        end
+
+      {t_acc, q_acc}
+    end)
+
+  process_e(new_queue, states, new_transitions, nfa)
+end
 end

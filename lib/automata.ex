@@ -62,4 +62,23 @@ defmodule Automata do
 
     process(new_queue, states, new_transitions, nfa)
   end
+
+  def e_closure(automaton, states) do
+  closure(states, automaton, MapSet.new(states))
+end
+
+defp closure([], _automaton, visited) do
+  MapSet.to_list(visited)
+end
+
+defp closure([current | rest], automaton, visited) do
+  next =
+    Map.get(automaton.transitions, {current, :epsilon}, [])
+    |> Enum.filter(fn s -> not MapSet.member?(visited, s) end)
+
+  new_visited =
+    Enum.reduce(next, visited, fn s, acc -> MapSet.put(acc, s) end)
+
+  closure(rest ++ next, automaton, new_visited)
+end
 end

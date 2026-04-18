@@ -24,4 +24,21 @@ defmodule AutomataTest do
 
     assert dfa.accept == [[0, 1]]
   end
+
+  test "epsilon closure works" do
+  nfa = %Automata{
+    states: [0,1,2],
+    alphabet: [:a],
+    transitions: %{
+      {0, :epsilon} => [1],
+      {1, :epsilon} => [2]
+    },
+    start: 0,
+    accept: [2]
+  }
+
+  result = Automata.e_closure(nfa, [0])
+
+  assert Enum.sort(result) == [0,1,2]
+end
 end
